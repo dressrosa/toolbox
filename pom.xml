@@ -10,15 +10,28 @@
 
     <properties>
         <logback-version>1.2.3</logback-version>
+        <fastjson-version>1.2.40</fastjson-version>
     </properties>
     <modules>
         <module>maple</module>
+        <module>ribbon</module>
     </modules>
     <dependencies>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
             <version>${logback-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback-version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>${fastjson-version}</version>
         </dependency>
 
     </dependencies>
