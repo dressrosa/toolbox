@@ -3,6 +3,7 @@
  */
 package com.xiaoyu.maple.core.test;
 
+import java.util.Date;
 import java.util.Map;
 
 import com.alibaba.fastjson.JSON;
@@ -20,14 +21,16 @@ public class Test {
         Dog dog = new Dog();
         Cat cat = new Cat();
         cat.setEye("ce").setNose("cn");
-        dog.setEye("e").setNose("n").setCat(cat);
+        dog
+                .setBirthDay(new Date())
+                .setNose("n").setCat(cat);
         u.setAge(88)
                 .setChild(new User())
                 .setDog(dog)
                 .setPage(4)
                 .setPname("tom")
                 .setName("fdf");
-
+        System.out.println(Date.class.getSuperclass().getName());
         Map<String, Object> map = MapleUtil.wrap(u)
                 .rename("child", "catty")
                 .stick("tom", new Object())

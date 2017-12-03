@@ -70,7 +70,7 @@ public class Maple {
         final Object target = wood;
         final Class<?> cls = parent;
         // 存在父类的话,对父类进行转化
-        if (cls.getSuperclass() != null) {
+        if (checkSupperClass(cls)) {
             cycleKeys(cls.getSuperclass(), target, initMap);
         }
         final Field[] fields = cls.getDeclaredFields();
@@ -111,6 +111,16 @@ public class Maple {
         } catch (IllegalArgumentException | IllegalAccessException e) {
             log.error(e.toString());
         }
+    }
+
+    private boolean checkSupperClass(Class<?> cls) {
+        // Date会造成栈溢出
+        if ("java.util.Date".equals(cls.getName())
+                || "java.lang.Object".equals(cls.getName())
+                || "sun.util.calendar.Gregorian".equals(cls.getName())) {
+            return false;
+        }
+        return cls.getSuperclass() != null;
     }
 
     /**
