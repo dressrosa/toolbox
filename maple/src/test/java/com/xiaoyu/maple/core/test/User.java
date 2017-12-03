@@ -46,10 +46,12 @@ public class User extends Parent {
         return this;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public User setName(String name) {
         this.name = name;
         return this;

@@ -28,7 +28,12 @@ public class Test {
                 .setPname("tom")
                 .setName("fdf");
 
-        Map<String, Object> map = MapleUtil.wrap(u).rename("child", "catty").stick("dog", MapleUtil.simpleMap(dog)).map();
+        Map<String, Object> map = MapleUtil.wrap(u)
+                .rename("child", "catty")
+                .stick("tom", new Object())
+                .stick("小猫", "hellokitty")
+                .rename("catty", "bigBoy")
+                .map();
 
         System.out.println(map);
         System.out.println(JSON.toJSONString(u));

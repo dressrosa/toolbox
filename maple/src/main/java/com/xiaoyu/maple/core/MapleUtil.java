@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * @author hongyu
  * @date 2017-11-29 22:59
- * @description 工具类
+ * @description 工具类,建议用此类作为使用类
  */
 public class MapleUtil {
 
@@ -21,8 +21,12 @@ public class MapleUtil {
 
     private static final MapleUtil INSTANCE = new MapleUtil();
 
+    private MapleUtil() {
+
+    }
+
     /**
-     * 初始化封装
+     * 初始化封装,只有此方法为util对外唯一暴漏
      * 
      * @param pakchoi
      * @return
@@ -32,6 +36,9 @@ public class MapleUtil {
         return MapleUtil.INSTANCE;
     }
 
+    /**输出map
+     * @return
+     */
     public Map<String, Object> map() {
         return local.get().map();
     }
