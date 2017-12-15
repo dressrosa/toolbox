@@ -18,7 +18,7 @@ import com.xiaoyu.ribbon.core.StringUtil;
  * @date 2017-11-22 22:20
  * @description 用于实体类-map的转化
  */
-public class Maple {
+class Maple {
 
     private static final Logger log = LoggerFactory.getLogger(Maple.class);
 
