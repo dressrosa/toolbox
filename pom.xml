@@ -26,7 +26,7 @@
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>${logback-version}</version>
-            <scope>test</scope>
+            <!-- <scope>test</scope> -->
         </dependency>
         <dependency>
             <groupId>com.alibaba</groupId>
@@ -46,9 +46,6 @@
                     <source>1.8</source>
                     <target>1.8</target>
                     <encoding>UTF-8</encoding>
-                   <!--  <includes>
-                        <include>com/xiaoyu/core/**</include>
-                    </includes> -->
                 </configuration>
             </plugin>
         </plugins>

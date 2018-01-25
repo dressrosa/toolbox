@@ -36,7 +36,9 @@ public class MapleUtil {
         return MapleUtil.INSTANCE;
     }
 
-    /**输出map
+    /**
+     * 输出map
+     * 
      * @return
      */
     public Map<String, Object> map() {
@@ -49,8 +51,14 @@ public class MapleUtil {
      * @param key
      * @return
      */
-    public MapleUtil skip(String key) {
-        local.get().skip(key);
+    public MapleUtil skip(String... key) {
+        if (key.length == 1) {
+            local.get().skip(key[0]);
+            return MapleUtil.INSTANCE;
+        }
+        for (String s : key) {
+            local.get().skip(s);
+        }
         return MapleUtil.INSTANCE;
     }
 

@@ -10,7 +10,9 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-/**对实体类加注解,表示是否转化等特点
+/**
+ * 对实体类加注解,表示是否转化等特点
+ * 
  * @author hongyu
  * @date 2017-11-28 23:13
  * @description
@@ -28,10 +30,17 @@ public @interface Mapable {
     String value();
 
     /**
-     * 是否转化
+     * 属性是否转化,false:保持原有值,true转为map型
      * 
      * @return
      */
-    boolean enable() default true;
+    boolean transfer() default true;
+
+    /**
+     * 是否跳过 false:map不包含此值,true:map包含此值
+     * 
+     * @return
+     */
+    boolean skip() default false;
 
 }

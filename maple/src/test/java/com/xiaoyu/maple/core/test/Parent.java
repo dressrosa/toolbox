@@ -2,6 +2,15 @@ package com.xiaoyu.maple.core.test;
 
 public class Parent {
 
+//    public Parent() {
+//        Object ob = this;
+//        if(ob instanceof User) {
+//            System.out.println("yes");
+//        }
+//        else {
+//            System.out.println("no");
+//        }
+//    }
     private int page;
     private String pname;
     private String name;

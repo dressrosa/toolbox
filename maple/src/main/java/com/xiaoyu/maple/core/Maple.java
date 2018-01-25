@@ -5,13 +5,12 @@ package com.xiaoyu.maple.core;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.xiaoyu.ribbon.core.StringUtil;
 
 /**
  * @author hongyu
@@ -53,8 +52,13 @@ class Maple {
     public void wrap(Object wood) {
         this.init(wood);
         final Object target = this.wood;
-        Map<String, Object> initMap = new HashMap<>();
-        this.cycleKeys(target.getClass(), target, initMap);
+        Class<?> cls = target.getClass();
+        Map<String, Object> initMap = new HashMap<>(cls.getDeclaredFields().length * 2);
+        if (isObjectParams(wood)) {
+            this.cycleKeys(cls, target, initMap);
+        } else {
+            initMap.put(String.valueOf(wood), wood);
+        }
         this.book = initMap;
     }
 
@@ -62,65 +66,90 @@ class Maple {
      * 核心转化方法<br/>
      * 主要是对wood及其成员变量递归父类转化
      * 
-     * @param parent
+     * @param targetClass
      * @param wood
      * @param initMap
      */
-    private void cycleKeys(Class<?> parent, Object wood, Map<String, Object> initMap) {
+    @SuppressWarnings("all")
+    private void cycleKeys(Class<?> targetClass, Object wood, Map<String, Object> initMap) {
         final Object target = wood;
-        final Class<?> cls = parent;
+        final Class<?> cls = targetClass;
         // 存在父类的话,对父类进行转化
-        if (checkSupperClass(cls)) {
-            cycleKeys(cls.getSuperclass(), target, initMap);
+        if (checkClass(cls)) {
+            this.cycleKeys(cls.getSuperclass(), target, initMap);
         }
         final Field[] fields = cls.getDeclaredFields();
+        if (fields.length == 0)
+            return;
         final Method[] methods = cls.getDeclaredMethods();
+
+        Map<String, Method> methodMap = new HashMap<>(methods.length);
+        for (final Method m : methods) {
+            // 放入get方法
+            if (m.getParameterCount() == 0 && !"void".equals(m.getReturnType())) {
+                methodMap.put(m.getName().toLowerCase(), m);
+            }
+        }
+        // 变量的名,对应转化后map的key
+        String fieldName = null;
+        String mapleValue = null;
+        Method m = null;
+        Object ret = null;
         try {
-            // 标记成员变量是否跳过转化
-            boolean skip = true;
-            // 变量的名,对应转化后map的key
-            String fieldName = null;
             for (final Field f : fields) {
-                skip = true;
                 fieldName = f.getName();
-                for (final Method m : methods) {
-                    // 判断是否有get方法
-                    if (m.getReturnType() != f.getType() || m.getParameterCount() > 0) {
-                        continue;
-                    }
-                    // 检查注解@Mapable,有注解返回注解的值
-                    String value = this.mapableValue(f);
-                    if (!StringUtil.isBlank(value)) {
-                        fieldName = value;
-                    }
-                    skip = false;
-                }
-                if (skip) {
+                // 判断是否有get方法Ø
+                m = methodMap.get("get".concat(fieldName.toLowerCase()));
+                if (m == null) {
                     continue;
                 }
-                if (!f.isAccessible()) {
-                    f.setAccessible(true);
+                // 检查注解@Mapable,有注解返回注解的值
+                Mapable anno = f.getAnnotation(Mapable.class);
+                mapleValue = mapableValue(anno);
+                if (!(mapleValue == null || mapleValue.length() == 0)) {
+                    fieldName = mapleValue;
                 }
-                if (this.checkIsObjectParams(f.get(target))) {
-                    initMap.put(fieldName, this.convertObject2Map(f.get(target)));
+                ret = m.invoke(target, null);
+                if (isTransfer(anno) && isObjectParams(ret)) {
+                    initMap.put(fieldName, this.convertObject2Map(ret));
                 } else {
-                    initMap.put(fieldName, f.get(target));
+                    initMap.put(fieldName, ret);
                 }
-
             }
-        } catch (IllegalArgumentException | IllegalAccessException e) {
+        } catch (Exception e) {
             log.error(e.toString());
         }
     }
 
-    private boolean checkSupperClass(Class<?> cls) {
+    /**
+     * 过滤对象自带的方法 "finalize", "wait", "toString", "hashCode", "getClass", "clone",
+     * "registerNatives", "notify", "notifyAll"
+     */
+    private static final String METHODS = "finalizewaittoStringhashCodegetClasscloneregisterNativesnotifyAll";
+
+    @SuppressWarnings("unused")
+    private static boolean isNativeMethod(String methodName) {
+        if (METHODS.indexOf(methodName) != -1) {
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean checkClass(final Class<?> cls) {
         // Date会造成栈溢出
-        if ("java.util.Date".equals(cls.getName())
-                || "java.lang.Object".equals(cls.getName())
-                || "sun.util.calendar.Gregorian".equals(cls.getName())) {
+        // if ("java.util.Date".equals(cls.getName())
+        // || "java.lang.Object".equals(cls.getName())
+        // || "sun.util.calendar.Gregorian".equals(cls.getName())) {
+        // return false;
+        // }
+        if (cls.getSuperclass() == null) {
             return false;
         }
-        return cls.getSuperclass() != null;
+        // jdk里面的类
+        if (cls.getSuperclass().getName().startsWith("java")) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -131,22 +160,27 @@ class Maple {
      */
     private Map<String, Object> convertObject2Map(Object variable) {
         final Object target = variable;
-        Map<String, Object> variableMap = new HashMap<>();
-        this.cycleKeys(target.getClass(), target, variableMap);
+        Class<?> cls = target.getClass();
+        Map<String, Object> variableMap = new HashMap<>(cls.getDeclaredFields().length * 2);
+        this.cycleKeys(cls, target, variableMap);
         return variableMap;
     }
 
     /**
-     * 成员变量是基本类型不做转化 只有在map list 或者 类对象(非null)不转化
+     * 成员变量是基本类型不做转化 只有在map list 或者 类对象(非null)不转化 boolean, byte, char, short, int,
+     * long, float, double.
      * 
      * @param param
      * @return
      */
-    private boolean checkIsObjectParams(Object param) {
-        if (param == null || param instanceof String || param instanceof Integer
-                || param instanceof Double || param instanceof Boolean
-                || param instanceof Float || param instanceof Byte
-                || param instanceof Short || param instanceof Long) {
+    private static boolean isObjectParams(Object param) {
+        if (param == null || param.getClass().isPrimitive()
+                || param instanceof String || param instanceof Integer
+                || param instanceof Double || param instanceof Date
+                || param instanceof Long || param instanceof Float
+                || param instanceof Boolean || param instanceof Short
+                || param instanceof Character || param instanceof Byte
+                || param instanceof Class) {
             return false;
         }
         return true;
@@ -158,13 +192,18 @@ class Maple {
      * @param f
      * @return
      */
-    private String mapableValue(final Field f) {
-        Mapable anno = f.getAnnotation(Mapable.class);
-        if (anno == null || !anno.enable()) {
+    private static String mapableValue(Mapable anno) {
+        if (anno == null || anno.skip()) {
             return null;
         }
         return anno.value();
+    }
 
+    private static boolean isTransfer(Mapable anno) {
+        if (anno == null) {
+            return true;
+        }
+        return anno.transfer();
     }
 
     /**
@@ -196,7 +235,7 @@ class Maple {
      * @return
      */
     public Maple stick(String key, Object value) {
-        if (this.checkIsObjectParams(value)) {
+        if (isObjectParams(value)) {
             this.book.put(key, this.convertObject2Map(value));
             return this;
         }
@@ -215,18 +254,16 @@ class Maple {
         final Class<?> cls = target.getClass();
         final Field[] fields = cls.getDeclaredFields();
         final Method[] methods = cls.getDeclaredMethods();
-        final Map<String, Object> map = new HashMap<>();
+        final Map<String, Object> map = new HashMap<>(fields.length * 2);
+        Map<String, Method> methodMap = new HashMap<>(methods.length * 2);
+        for (Method m : methods) {
+            if (m.getParameterCount() == 0) {
+                methodMap.put(m.getName().toLowerCase(), m);
+            }
+        }
         try {
-            boolean skip = true;
             for (final Field f : fields) {
-                skip = true;
-                for (final Method m : methods) {
-                    if (m.getReturnType() != f.getType() || m.getParameterCount() > 0) {
-                        continue;
-                    }
-                    skip = false;
-                }
-                if (skip) {
+                if (methodMap.get("get".concat(f.getName().toLowerCase())) == null) {
                     continue;
                 }
                 if (!f.isAccessible()) {

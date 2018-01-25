@@ -3,7 +3,10 @@
  */
 package com.xiaoyu.maple.core.test;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.alibaba.fastjson.JSON;
@@ -16,7 +19,13 @@ import com.xiaoyu.maple.core.MapleUtil;
  */
 public class Test {
 
-    public static void main(String[] args) {
+    
+    /**
+     * 
+     */
+    public static final int SIZE = 2_000;
+
+    public static void main(String[] args) throws Exception {
         User u = new User();
         Dog dog = new Dog();
         Cat cat = new Cat();
@@ -30,16 +39,72 @@ public class Test {
                 .setPage(4)
                 .setPname("tom")
                 .setName("fdf");
-        System.out.println(Date.class.getSuperclass().getName());
-        Map<String, Object> map = MapleUtil.wrap(u)
-                .rename("child", "catty")
-                .stick("tom", new Object())
-                .stick("小猫", "hellokitty")
-                .rename("catty", "bigBoy")
-                .map();
 
-        System.out.println(map);
-        System.out.println(JSON.toJSONString(u));
+        doTestNomal(u);
+        Thread.sleep(2000);
+        doTestMaple(u);
 
+    }
+
+    private static void doTestNomal(User u) {
+        long start = System.currentTimeMillis();
+        List<Map<String, Object>> list = new ArrayList<>();
+        for (int i = 0; i < SIZE; i++) {
+            Map<String, Object> map = new HashMap<>(16);
+            map.put("tom", new Object());
+            map.put("pname", u.getPname());
+            map.put("name", u.getName());
+            map.put("page", u.getPage());
+            map.put("age", u.getAge());
+            map.put("bigBoy", mapChild(u.getChild()));
+            map.put("小猫", "hellokitty");
+            map.put("dog", mapDog(u.getDog()));
+
+            list.add(map);
+        }
+        System.out.println("normal:" + JSON.toJSONString(list.get(50)));
+        System.out.println("normal:" + (System.currentTimeMillis() - start));
+    }
+
+    private static Object mapDog(Dog dog) {
+        Map<String, Object> map = new HashMap<>(8);
+        map.put("birthday", dog.getBirthDay());
+        map.put("eye", dog.getEye());
+        map.put("nose", dog.getNose());
+        map.put("cat", mapCat(dog.getCat()));
+        return map;
+    }
+
+    private static Object mapCat(Cat cat) {
+        Map<String, Object> map = new HashMap<>(4);
+        map.put("eye", cat.getEye());
+        map.put("nose", cat.getNose());
+        return map;
+    }
+
+    private static Object mapChild(User u) {
+        Map<String, Object> map = new HashMap<>(8);
+        map.put("pname", u.getPname() == null ? "" : u.getName());
+        map.put("name", u.getName() == null ? "" : u.getName());
+        map.put("page", u.getPage());
+        map.put("age", u.getAge());
+        if (u.getDog() != null)
+            map.put("dog", mapDog(u.getDog()));
+        return map;
+    }
+
+    private static void doTestMaple(User u) {
+        long start = System.currentTimeMillis();
+        List<Map<String, Object>> list = new ArrayList<>();
+        for (int i = 0; i < SIZE; i++) {
+            Map<String, Object> map = MapleUtil.wrap(u)
+                    .stick("tom", new Object())
+                    .stick("小猫", "hellokitty")
+                    .rename("child", "bigBoy")
+                    .map();
+            list.add(map);
+        }
+        System.out.println("maple:" + JSON.toJSONString(list.get(50)));
+        System.out.println("maple:" + (System.currentTimeMillis() - start));
     }
 }
