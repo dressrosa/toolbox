@@ -12,12 +12,11 @@ import com.xiaoyu.maple.core.Mapable;
  */
 public class User extends Parent {
 
-    
     private int age;
     private String name;
 
     private User child;
-  @Mapable(skip = false, value = "dog1",transfer=true)
+    @Mapable(skip = false, value = "dog1", transfer = true)
     private Dog dog;
 
     public Dog getDog() {

@@ -19,11 +19,10 @@ import com.xiaoyu.maple.core.MapleUtil;
  */
 public class Test {
 
-    
     /**
      * 
      */
-    public static final int SIZE = 2_000;
+    public static final int SIZE = 30_000;
 
     public static void main(String[] args) throws Exception {
         User u = new User();
@@ -39,14 +38,14 @@ public class Test {
                 .setPage(4)
                 .setPname("tom")
                 .setName("fdf");
-
+        
         doTestNomal(u);
-        Thread.sleep(2000);
+        Thread.sleep(500);
         doTestMaple(u);
-
+        
     }
 
-    private static void doTestNomal(User u) {
+    public static void doTestNomal(User u) {
         long start = System.currentTimeMillis();
         List<Map<String, Object>> list = new ArrayList<>();
         for (int i = 0; i < SIZE; i++) {
@@ -58,7 +57,7 @@ public class Test {
             map.put("age", u.getAge());
             map.put("bigBoy", mapChild(u.getChild()));
             map.put("小猫", "hellokitty");
-            map.put("dog", mapDog(u.getDog()));
+            map.put("dog1", mapDog(u.getDog()));
 
             list.add(map);
         }
@@ -93,7 +92,7 @@ public class Test {
         return map;
     }
 
-    private static void doTestMaple(User u) {
+    public static void doTestMaple(User u) {
         long start = System.currentTimeMillis();
         List<Map<String, Object>> list = new ArrayList<>();
         for (int i = 0; i < SIZE; i++) {
@@ -104,6 +103,7 @@ public class Test {
                     .map();
             list.add(map);
         }
+        System.out.println("maple11:" + JSON.toJSONString(MapleUtil.wrap(new Date()).map()));
         System.out.println("maple:" + JSON.toJSONString(list.get(50)));
         System.out.println("maple:" + (System.currentTimeMillis() - start));
     }

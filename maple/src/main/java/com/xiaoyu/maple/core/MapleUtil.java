@@ -28,11 +28,21 @@ public class MapleUtil {
     /**
      * 初始化封装,只有此方法为util对外唯一暴漏
      * 
-     * @param pakchoi
+     * @param wood
      * @return
      */
-    public static MapleUtil wrap(Object pakchoi) {
-        local.get().wrap(pakchoi);
+    public static MapleUtil wrap(Object wood) {
+        local.get().wrap(wood);
+        return MapleUtil.INSTANCE;
+    }
+
+    /**
+     * 初始化一个空的map
+     * 
+     * @return
+     */
+    public static MapleUtil wrap() {
+        local.get().wrap(new Object());
         return MapleUtil.INSTANCE;
     }
 
@@ -56,8 +66,9 @@ public class MapleUtil {
             local.get().skip(key[0]);
             return MapleUtil.INSTANCE;
         }
+        Maple ma = local.get();
         for (String s : key) {
-            local.get().skip(s);
+            ma.skip(s);
         }
         return MapleUtil.INSTANCE;
     }
