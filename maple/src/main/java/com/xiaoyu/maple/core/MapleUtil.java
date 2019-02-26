@@ -42,7 +42,7 @@ public class MapleUtil {
      * @return
      */
     public static MapleUtil wrap() {
-        local.get().wrap(new Object());
+        local.get().wrap(null);
         return MapleUtil.INSTANCE;
     }
 

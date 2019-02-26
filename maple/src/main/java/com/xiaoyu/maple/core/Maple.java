@@ -50,15 +50,18 @@ class Maple {
      * @param wood
      */
     public void wrap(Object wood) {
+        if (wood == null) {
+            book = new HashMap<>();
+            return;
+        }
         this.init(wood);
         final Object target = this.wood;
         Class<?> cls = target.getClass();
-        Map<String, Object> initMap = new HashMap<>(cls.getDeclaredFields().length << 1);
-        if (Maple.isObjectParams(target)) {
+        Map<String, Object> initMap = new HashMap<>(cls.getDeclaredFields().length);
+        if (Maple.isEntityParams(target)) {
             this.cycleKeys(cls, target, initMap);
         } else {
-            // 基础类型可以直接调用toString
-            initMap.put(target.toString(), target);
+            initMap.put(target.getClass().getName(), target);
         }
         this.book = initMap;
     }
@@ -112,7 +115,7 @@ class Maple {
                 f.setAccessible(true);
                 ret = f.get(target);
 
-                if (Maple.isTransfer(anno) && Maple.isObjectParams(ret)) {
+                if (Maple.isTransfer(anno) && Maple.isEntityParams(ret)) {
                     initMap.put(fieldName, this.convertObject2Map(ret));
                 } else {
                     initMap.put(fieldName, ret);
@@ -163,7 +166,7 @@ class Maple {
     private Map<String, Object> convertObject2Map(Object variable) {
         final Object target = variable;
         final Class<?> cls = target.getClass();
-        Map<String, Object> variableMap = new HashMap<>(cls.getDeclaredFields().length << 1);
+        Map<String, Object> variableMap = new HashMap<>(cls.getDeclaredFields().length);
         this.cycleKeys(cls, target, variableMap);
         return variableMap;
     }
@@ -175,8 +178,9 @@ class Maple {
      * @param param
      * @return
      */
-    private static boolean isObjectParams(Object param) {
+    private static boolean isEntityParams(Object param) {
         if (param == null || param.getClass().isPrimitive()
+                || param.getClass().getName().startsWith("java")
                 || param instanceof String || param instanceof Integer
                 || param instanceof Double || param instanceof Date
                 || param instanceof Long || param instanceof Float
@@ -237,7 +241,7 @@ class Maple {
      * @return
      */
     public Maple stick(String key, Object value) {
-        if (Maple.isObjectParams(value)) {
+        if (Maple.isEntityParams(value)) {
             this.book.put(key, this.convertObject2Map(value));
             return this;
         }
